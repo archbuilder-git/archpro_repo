@@ -1,23 +1,20 @@
 #!/bin/bash
 
-rm archpro-repo*
+rm archpro_repo*
 
 echo "repo-add"
-repo-add -s -n -R archpro-repo.db.tar.gz *.pkg.tar.zst
+repo-add -s -n -R archpro_repo.db.tar.gz *.pkg.tar.zst
 
 sleep 1
 
-rm archpro-repo.db
-rm archpro-repo.db.sig
+rm archpro_repo.db
+rm archpro_repo.db.sig
 
-rm archpro-repo.files
-rm archpro-repo.files.sig
+rm archpro_repo.files
+rm archpro_repo.files.sig
 
-mv archpro-repo.db.tar.gz archpro-repo.db
-#mv archpro-repo.db.tar.gz.sig archpro-repo.db.sig
-
-mv archpro-repo.files.tar.gz archpro-repo.files
-#mv archpro-repo.files.tar.gz.sig archpro-repo.files.sig
+mv archpro_repo.db.tar.gz archpro_repo.db
+mv archpro_repo.files.tar.gz archpro_repo.files
 
 
 echo "####################################"
