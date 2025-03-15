@@ -19,9 +19,12 @@ if ! git remote | grep -q origin; then
     git remote add origin git@github.com:archbuilder-git/archpro_repo.git
 fi
 
-# Explicitly add all necessary repository files, including signature files
+# Explicitly add repository database and signature files
+git add x86_64/archpro_repo.db x86_64/archpro_repo.db.sig
+git add x86_64/archpro_repo.files x86_64/archpro_repo.files.sig
+
+# Also add any new packages
 git add --all .
-git add x86_64/archpro_repo.db.sig x86_64/archpro_repo.files.sig
 
 # Commit message prompt
 echo "####################################"
