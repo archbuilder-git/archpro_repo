@@ -2,7 +2,7 @@
 *.db.tar.gz
 *.files
 *.files.tar.gz
-*.sig
 .directory
 gpg.sh
 ssh.sh
+
