@@ -19,26 +19,17 @@ if ! git remote | grep -q origin; then
     git remote add origin git@github.com:archbuilder-git/archpro_repo.git
 fi
 
-# Explicitly force-add the modified repo database and signature files
-git add -f x86_64/archpro_repo.db x86_64/archpro_repo.db.sig
-git add -f x86_64/archpro_repo.files x86_64/archpro_repo.files.sig
-
-# Also add any new packages
+# Explicitly add all necessary repository files, including signature files
 git add --all .
+git add x86_64/archpro_repo.db x86_64/archpro_repo.db.sig
+git add x86_64/archpro_repo.files x86_64/archpro_repo.files.sig
 
-# Commit message prompt
-echo "####################################"
-echo "Write your commit comment!"
-echo "####################################"
-
-read input
-
-# Commit only if there are changes
+# Check if there are any changes before committing
 if git diff --staged --quiet; then
     echo "No changes to commit."
 else
-    git commit -m "$input"
-    # Push to GitHub
+    # Commit and push only if there are actual changes
+    git commit -m "Auto-update repository database and signatures"
     git push -u origin main || { echo "Git push failed!"; exit 1; }
 fi
 
