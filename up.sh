@@ -5,8 +5,14 @@ cd x86_64
 sh ./update_repo.sh || { echo "Repository update failed!"; exit 1; }
 cd ..
 
-# Ensure the latest changes are pulled
+# Stash any uncommitted changes before pulling
+git stash --include-untracked
+
+# Ensure the latest changes are pulled with rebase
 git pull --rebase
+
+# Restore stashed changes (if any)
+git stash pop || echo "No stashed changes to restore."
 
 # Ensure remote is set up correctly
 if ! git remote | grep -q origin; then
