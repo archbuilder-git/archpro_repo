@@ -17,6 +17,9 @@ mv archpro_repo.files.tar.gz archpro_repo.files
 mv archpro_repo.db.tar.gz.sig archpro_repo.db.sig 2>/dev/null
 mv archpro_repo.files.tar.gz.sig archpro_repo.files.sig 2>/dev/null
 
+# Export public key for pacman
+gpg --armor --export DFB61E9697C6C104 > archpro.gpg
+
 echo "####################################"
 echo "Repo Updated!!"
 echo "####################################"
