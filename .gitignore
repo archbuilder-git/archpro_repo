@@ -6,3 +6,7 @@
 gpg.sh
 ssh.sh
 
+
+# avoid pushing big packages to GitHub
+x86_64/*.pkg.tar.zst*
+
