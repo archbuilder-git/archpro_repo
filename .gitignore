@@ -1,12 +1,9 @@
-*.db
-*.db.tar.gz
-*.files
-*.files.tar.gz
-.directory
-gpg.sh
-ssh.sh
+x86_64/*.pkg.tar.*
+# allow packages in x86_64 directory
+!x86_64/*.pkg.tar.zst
+!x86_64/*.pkg.tar.zst.sig
 
 
-# avoid pushing big packages to GitHub
-x86_64/*.pkg.tar.zst*
+
+
 
