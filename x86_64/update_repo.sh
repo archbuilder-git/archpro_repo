@@ -1,28 +1,77 @@
 #!/bin/bash
+set -euo pipefail
 
-# Clean old repo files
-rm -f archpro_repo*
+KEYID="DFB61E9697C6C104"
 
-echo "repo-add"
-repo-add -s -n -R archpro_repo.db.tar.gz *.pkg.tar.zst || { echo "repo-add failed!"; exit 1; }
+cd "$(dirname "$0")"
 
-sleep 1
+REPONAME="${1:-}"
 
-# Clean any old leftover extracted db/files
-rm -f archpro_repo.db
-rm -f archpro_repo.files
+detect_repo_name() {
+  shopt -s nullglob
 
-# Rename the new database and file list to the expected format
-mv archpro_repo.db.tar.gz archpro_repo.db
-mv archpro_repo.files.tar.gz archpro_repo.files
+  # 1) Kui kaustas on täpselt üks *.db (mitte .tar.gz), kasuta seda
+  local dbs=( *.db )
+  if (( ${#dbs[@]} == 1 )); then
+    echo "${dbs[0]%.db}"
+    return 0
+  fi
 
-# Rename and preserve signature files for metadata
-mv archpro_repo.db.tar.gz.sig archpro_repo.db.sig 2>/dev/null
-mv archpro_repo.files.tar.gz.sig archpro_repo.files.sig 2>/dev/null
+  # 2) Proovi tuvastada git repo juurkataloogi nimest
+  local top
+  top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$top" ]]; then
+    local base
+    base="$(basename "$top")"
+    if [[ "$base" == "archpro_repo" || "$base" == "archpro-repo" || "$base" == "archpro-repo-extra" || "$base" == "archpro-xxl" ]]; then
+      echo "$base"
+      return 0
+    fi
+  fi
 
-# Export public key for users to import
-gpg --armor --export DFB61E9697C6C104 > archpro.gpg
+  # 3) Viimane variant: kui leidub varasemaid faile (sig või files)
+  if ls archpro_repo.{db,files,db.sig,files.sig} >/dev/null 2>&1; then
+    echo "archpro_repo"
+    return 0
+  fi
+  if ls archpro-repo.{db,files,db.sig,files.sig} >/dev/null 2>&1; then
+    echo "archpro-repo"
+    return 0
+  fi
+
+  # 4) fallback: praeguse kausta nimi
+  echo "$(basename "$(pwd)")"
+}
+
+if [[ -z "$REPONAME" ]]; then
+  REPONAME="$(detect_repo_name)"
+fi
+
+# sanity: peab olema vähemalt üks pkg
+shopt -s nullglob
+pkgs=( *.pkg.tar.zst )
+if (( ${#pkgs[@]} == 0 )); then
+  echo "No *.pkg.tar.zst files found in $(pwd)"
+  exit 1
+fi
+
+export GPG_TTY="$(tty)"
+gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1 || true
+
+echo "==> repo-add for: $REPONAME"
+rm -f "${REPONAME}.db"* "${REPONAME}.files"*
+
+# -s = sign, -k = key, -n/-R = hoiab pakettide järjekorra/vanad kirjed
+repo-add -s -k "$KEYID" -n -R "${REPONAME}.db.tar.gz" "${pkgs[@]}"
+
+mv -f "${REPONAME}.db.tar.gz"     "${REPONAME}.db"
+mv -f "${REPONAME}.db.tar.gz.sig" "${REPONAME}.db.sig"
+mv -f "${REPONAME}.files.tar.gz"     "${REPONAME}.files"
+mv -f "${REPONAME}.files.tar.gz.sig" "${REPONAME}.files.sig"
+
+# (soovi korral) ekspordi public key repo kausta
+gpg --armor --export "$KEYID" > archpro.gpg
 
 echo "####################################"
-echo "Repo Updated!!"
+echo "Repo Updated: $REPONAME"
 echo "####################################"

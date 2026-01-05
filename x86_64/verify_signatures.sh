@@ -1,30 +1,33 @@
 #!/bin/bash
+set -euo pipefail
 
-echo "🔐 Verifying GPG signatures for all repository files..."
-
-# Change to x86_64 directory if needed
+echo "🔐 Verifying GPG signatures for repository files..."
 cd "$(dirname "$0")"
 
-# List of file types to check
-files_to_verify=(
-  "*.pkg.tar.zst"
-  "archpro-repo.db"
-  "archpro-repo.files"
-)
+verify_one() {
+  local file="$1"
+  local sig="${file}.sig"
 
-for base in "${files_to_verify[@]}"; do
-  for file in $base; do
-    sig="${file}.sig"
-    if [[ -f "$sig" ]]; then
-      echo "🔍 Verifying: $file"
-      gpg --verify "$sig" "$file" || {
-        echo "❌ Verification failed for $file"
-        exit 1
-      }
-    else
-      echo "⚠️  Missing signature for $file"
-    fi
-  done
+  if [[ -f "$sig" ]]; then
+    echo "🔍 Verifying: $file"
+    gpg --verify "$sig" "$file"
+  else
+    echo "⚠  Missing signature for $file"
+  fi
+}
+
+shopt -s nullglob
+
+# 1) Packages
+for f in *.pkg.tar.zst; do
+  verify_one "$f"
 done
 
-echo "✅ All signatures verified successfully."
+# 2) Repo DB + files (supports archpro_repo, archpro-repo, archpro-xxl, jne)
+for f in *.db *.files; do
+  # välista tar.gz vahefailid, kui keegi jätab need alles
+  [[ "$f" == *.tar.gz ]] && continue
+  verify_one "$f"
+done
+
+echo "✅ Signature verification finished."
